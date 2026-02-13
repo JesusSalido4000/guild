@@ -4,7 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Guild.Api.Controllers;
 
-public sealed record CreateAdventurerRequest(string Name, string Class, int Level, int Age);
+public sealed record CreateAdventurerRequest(string Name, int Age, AdventurerClass Class);
+
 public sealed record KillAdventurerRequest(string Mission, string? Note);
 
 [ApiController]
@@ -22,17 +23,18 @@ public class AdventurersController : ControllerBase
     public IActionResult Create([FromBody] CreateAdventurerRequest req)
     {
         if (string.IsNullOrWhiteSpace(req.Name)) return BadRequest("Name is required.");
-        if (string.IsNullOrWhiteSpace(req.Class)) return BadRequest("Class is required.");
-        if (req.Level < 1 || req.Level > 100) return BadRequest("Level must be between 1 and 100.");
         if (req.Age < 10 || req.Age > 120) return BadRequest("Age must be between 10 and 120.");
 
         var a = new Adventurer
         {
             Name = req.Name.Trim(),
-            Class = req.Class.Trim(),
-            Level = req.Level,
             Age = req.Age,
-            Status = AdventurerStatus.Alive
+            Class = req.Class,
+            Status = AdventurerStatus.Alive,
+            Level = 1,
+            Xp = 0,
+            Renown = 0,
+            Rank = AdventurerRank.E
         };
 
         GuildStore.Add(a);
@@ -52,15 +54,14 @@ public class AdventurersController : ControllerBase
             return BadRequest("Mission is required.");
 
         a.Status = AdventurerStatus.Dead;
-        a.DiedAt = DateTimeOffset.UtcNow;
-        a.DiedOnMission = req.Mission.Trim();
-
-        // Comentario simple (luego lo hacemos más “lore”)
-        a.Epitaph = string.IsNullOrWhiteSpace(req.Note)
-            ? $"{a.Name} cayó cumpliendo su deber."
-            : req.Note.Trim();
+        a.Death = new DeathInfo
+        {
+            DiedAt = DateTimeOffset.UtcNow,
+            MissionName = req.Mission.Trim(),
+            Note = string.IsNullOrWhiteSpace(req.Note) ? null : req.Note.Trim(),
+            Epitaph = $"{a.Name} cayó cumpliendo su deber."
+        };
 
         return Ok(a);
     }
 }
-

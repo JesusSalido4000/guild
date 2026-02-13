@@ -4,7 +4,6 @@ namespace Guild.Api.Data;
 
 public static class GuildStore
 {
-    // In-memory store (para aprender fácil)
     private static readonly List<Adventurer> _adventurers = new();
 
     public static IReadOnlyList<Adventurer> Adventurers => _adventurers;
