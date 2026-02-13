@@ -1,0 +1,6 @@
+@Guild.Api_HostAddress = http://localhost:5046
+
+GET {{Guild.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
